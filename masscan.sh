@@ -66,8 +66,7 @@ if [[ "$SEND_TO_TELEGRAM" == "yes" ]]; then
     read -r TELEGRAM_TOKEN
     echo "Enter your Telegram Chat ID:"
     read -r CHAT_ID
-
-    # ارسال فایل به تلگرام
+    
     curl -s -X POST https://api.telegram.org/bot"$TELEGRAM_TOKEN"/sendDocument -F chat_id="$CHAT_ID" -F document=@"$OUTPUT_FILE"
 
     echo "File sent to Telegram successfully."
