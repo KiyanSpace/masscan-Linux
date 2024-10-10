@@ -1,17 +1,20 @@
 #!/bin/bash
 clear
-echo "                        _____  _____  _____  "
-echo "                       |  __ \\|  __ \\|  __ \\ "
-echo "  ___  _ __   ___ _ __ | |__) | |  | | |__) |"
-echo " / _ \\| '_ \\ / _ \\ '_ \\|  _  /| |  | |  ___/ "
-echo "| (_) | |_) |  __/ | | | | \\ \\| |__| | |     "
-echo " \\___/| .__/ \\___|_| |_|_|  \\_\\_____/|_|     "
-echo "      | |                                    "
-echo "      |_|                                    "
-echo "--------------------------------------------------"
-echo "Contact: t.me/openrdp"
-echo "--------------------------------------------------"
+cat << "EOF"
+                        _____  _____  _____  
+                       |  __ \|  __ \|  __ \ 
+  ___  _ __   ___ _ __ | |__) | |  | | |__) |
+ / _ \| '_ \ / _ \ '_ \|  _  /| |  | |  ___/ 
+| (_) | |_) |  __/ | | | | \ \| |__| | |     
+ \___/| .__/ \___|_| |_|_|  \_\_____/|_|     
+      | |                                   
+      |_|                                   
+--------------------------------------------------
+Contact: t.me/openrdp
+--------------------------------------------------
+EOF
 
+# Check if masscan is installed, and install it if necessary
 if ! command -v masscan &> /dev/null; then
     echo "masscan is not installed."
     echo "Installing masscan from GitHub..."
@@ -37,39 +40,39 @@ else
 fi
 
 echo "Masscan Scanner"
-echo "PORT:"
-read -r PORT
-if ! [[ "$PORT" =~ ^[0-9]+$ ]]; then
-    echo "Invalid PORT"
-    exit 1
-fi
 
-echo "RANGE IP: "
-read -r INPUT_FILE
-if [ ! -f "$INPUT_FILE" ]; then
-    echo "NOT FILE $INPUT_FILE"
-    exit 1
-fi
+while true; do
+    read -r -p "PORT : " PORT
 
-echo "RATE:"
-read -r RATE
-masscan --exclude 255.255.255.255 -p "$PORT" -iL "$INPUT_FILE" -oL IPs.txt --rate="$RATE"
-echo "SAVED File"
-echo "Enter output filename (example IP.txt)"
-read -r OUTPUT_FILE
+    if [[ "$PORT" =~ ^([0-9]+(,[0-9]+)*|[0-9]+(-[0-9]+)(,[0-9]+(-[0-9]+)*)*)$ ]]; then
+        break
+    else
+        echo "Invalid PORT input. Please try again."
+    fi
+done
+while true; do
+    read -r -p "RANGE IP " INPUT_FILE
+    if [[ -f "$INPUT_FILE" ]]; then
+        break
+    else
+        echo "Not a valid file: $INPUT_FILE. Please provide a valid file."
+    fi
+done
+
+
+read -r -p "RATE: " RATE
+masscan --exclude 255.255.255.255 -p "$PORT" -iL "$INPUT_FILE" -oL IPs.txt --rate="$RATE" 
+echo "Saved file: IPs.txt"
+read -r -p "Enter output filename (example IP.txt): " OUTPUT_FILE
 awk '{print $4 ":" $3}' IPs.txt > "$OUTPUT_FILE"
 echo "Data saved to $OUTPUT_FILE"
-echo "Do you want to send the file $OUTPUT_FILE to Telegram? (yes/no)"
-read -r SEND_TO_TELEGRAM
+read -r -p "Do you want to send the file $OUTPUT_FILE to Telegram? (yes/no): " SEND_TO_TELEGRAM
 if [[ "$SEND_TO_TELEGRAM" == "yes" ]]; then
-    echo "Enter your Telegram Bot Token:"
-    read -r TELEGRAM_TOKEN
-    echo "Enter your Telegram Chat ID:"
-    read -r CHAT_ID
-    
+    read -r -p "Enter your Telegram Bot Token: " TELEGRAM_TOKEN
+    read -r -p "Enter your Telegram Chat ID: " CHAT_ID
     curl -s -X POST https://api.telegram.org/bot"$TELEGRAM_TOKEN"/sendDocument -F chat_id="$CHAT_ID" -F document=@"$OUTPUT_FILE"
 
     echo "File sent to Telegram successfully."
 else
-    echo "Operation completed. The file $OUTPUT_FILE saved"
+    echo "Operation completed. The file $OUTPUT_FILE has been saved."
 fi
