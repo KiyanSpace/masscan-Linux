@@ -51,7 +51,7 @@ while true; do
     fi
 done
 while true; do
-    read -r -p "RANGE IP " INPUT_FILE
+    read -r -p "RANGE IP : " INPUT_FILE
     if [[ -f "$INPUT_FILE" ]]; then
         break
     else
